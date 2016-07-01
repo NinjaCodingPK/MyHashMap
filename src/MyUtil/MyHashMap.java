@@ -1,8 +1,6 @@
 package MyUtil;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -88,7 +86,6 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     public MyHashMap() {
         entries = new Entry[DEFAULT_START_CAPACITY];
-        size = DEFAULT_START_CAPACITY;
     }
 
     private void addCapacity() {
@@ -175,7 +172,8 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public V get(Object key) {
-        return null;
+        int position = key.hashCode() % entries.length;
+        return (V) entries[position].getValue();
     }
 
     @Override
@@ -193,20 +191,34 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public V put(K key, V value) {
-        int position = key.hashCode()/entries.length;
+        int position =  key.hashCode() % entries.length;
 
         if(entries[position] == null) {
             entries[position] = new Entry(key, value, key.hashCode(), null);
         }
         else
             putnext(entries[position], key, value);
-
+        size++;
         return value;
+    }
+
+    private void removeNext(Entry next) {
+        if(next != null) {
+            if(next.getNext() != null)
+                removeNext(next);
+
+            next = null;
+        }
     }
 
     @Override
     public V remove(Object key) {
-        return null;
+        int position = key.hashCode() % entries.length;
+        Entry temp = entries[position];
+        removeNext(entries[position]);
+        entries[position] = null;
+        size--;
+        return (V) temp.getValue();
     }
 
     @Override
@@ -216,17 +228,32 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public void clear() {
-
+        for(Entry en : entries)
+            removeNext(en);
     }
 
     @Override
     public Set<K> keySet() {
-        return null;
+        Set<K> keySet = new HashSet<>();
+
+        for(Entry en : entries) {
+            if(en != null)
+                keySet.add((K) en.getKey());
+        }
+
+        return keySet;
     }
 
     @Override
     public Collection<V> values() {
-        return null;
+        List<V> values = new ArrayList<>();
+
+        for(Entry en : entries) {
+            if(en != null)
+                values.add((V) en.getValue());
+        }
+
+        return values;
     }
 
     @Override
